@@ -1,7 +1,7 @@
 // pubspec.yaml for the demo project
 /*
 name: lottie_zip_demo
-description: A simple demo app to test Lottie ZIP file upload and preview
+description: A simple demo app to test Lottie ZIP file upload and preview with audio support
 
 version: 1.0.0+1
 
@@ -15,6 +15,7 @@ dependencies:
   file_picker: ^6.1.1
   archive: ^3.4.9
   path_provider: ^2.1.1
+  just_audio: ^0.9.36  # Added for audio support
 
 dev_dependencies:
   flutter_test:
@@ -25,12 +26,15 @@ flutter:
   uses-material-design: true
 */
 
+import 'dart:io';
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:archive/archive.dart';
 import 'package:lottie/lottie.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:just_audio/just_audio.dart';
 
 void main() {
   runApp(const LottieZipDemoApp());
@@ -54,7 +58,7 @@ class LottieZipDemoApp extends StatelessWidget {
 }
 
 class LottieZipScreen extends StatefulWidget {
-  const LottieZipScreen({Key? key}) : super(key: key);
+  const LottieZipScreen({super.key});
 
   @override
   State<LottieZipScreen> createState() => _LottieZipScreenState();
@@ -69,11 +73,16 @@ class _LottieZipScreenState extends State<LottieZipScreen>
   Map<String, dynamic>? _animationData;
   Map<String, dynamic>? _templateData;
   Map<String, Uint8List>? _extractedImages; // Changed for web compatibility
+  Uint8List? _extractedAudio; // Added for audio support
+  String? _audioFileName;
   String? _zipFileName;
   String? _mainFolderName;
 
   // Animation controller
   AnimationController? _lottieController;
+
+  // Audio player
+  final AudioPlayer _audioPlayer = AudioPlayer();
 
   @override
   void initState() {
@@ -84,6 +93,7 @@ class _LottieZipScreenState extends State<LottieZipScreen>
   @override
   void dispose() {
     _lottieController?.dispose();
+    _audioPlayer.dispose(); // Dispose audio player
     super.dispose();
   }
 
@@ -103,6 +113,8 @@ class _LottieZipScreenState extends State<LottieZipScreen>
           _animationData = null;
           _templateData = null;
           _extractedImages = null;
+          _extractedAudio = null;
+          _audioFileName = null;
         });
 
         await _processZipFile(
@@ -147,6 +159,8 @@ class _LottieZipScreenState extends State<LottieZipScreen>
       Map<String, Uint8List> images = {};
       Map<String, dynamic>? animationData;
       Map<String, dynamic>? templateData;
+      Uint8List? audioData;
+      String? audioFileName;
 
       // Extract files directly from ZIP (no temporary files for web)
       for (final file in archive) {
@@ -183,6 +197,18 @@ class _LottieZipScreenState extends State<LottieZipScreen>
             images[fileName] = Uint8List.fromList(file.content);
             print('Found image: $fileName (size: ${file.content.length} bytes)');
           }
+        } else if (file.name.contains(mainFolder) &&
+            !file.name.contains('images/') &&
+            !file.name.endsWith('.json')) {
+          // Check for audio files in main folder
+          final fileName = file.name.split('/').last;
+          final extension = fileName.toLowerCase().split('.').last;
+
+          if (['mp3', 'wav', 'aac', 'm4a', 'ogg'].contains(extension)) {
+            audioData = Uint8List.fromList(file.content);
+            audioFileName = fileName;
+            print('Found audio: $fileName (size: ${file.content.length} bytes)');
+          }
         }
       }
 
@@ -190,12 +216,15 @@ class _LottieZipScreenState extends State<LottieZipScreen>
       print('- Animation data: ${animationData != null ? 'Found' : 'Not found'}');
       print('- Template data: ${templateData != null ? 'Found' : 'Not found'}');
       print('- Images: ${images.length} found');
+      print('- Audio: ${audioData != null ? 'Found ($audioFileName)' : 'Not found'}');
 
       // Update state
       setState(() {
         _animationData = animationData;
         _templateData = templateData;
         _extractedImages = images;
+        _extractedAudio = audioData;
+        _audioFileName = audioFileName;
         _zipFileName = fileName;
         _mainFolderName = mainFolder;
         _isLoading = false;
@@ -204,6 +233,11 @@ class _LottieZipScreenState extends State<LottieZipScreen>
       // Initialize animation
       if (animationData != null) {
         _initializeAnimation();
+      }
+
+      // Setup audio if available
+      if (audioData != null) {
+        _setupAudio(audioData);
       }
 
     } catch (e) {
@@ -222,6 +256,30 @@ class _LottieZipScreenState extends State<LottieZipScreen>
     }
   }
 
+  // Setup audio player
+  Future<void> _setupAudio(Uint8List audioData) async {
+    try {
+      if (kIsWeb) {
+        // For web, we need to create a data URL
+        final base64Audio = base64Encode(audioData);
+        final audioUrl = 'data:audio/mpeg;base64,$base64Audio';
+
+        // Note: Web audio might have limitations, this is a basic implementation
+        print('Audio setup for web: ${audioData.length} bytes');
+      } else {
+        // For mobile, save to temporary file and load
+        final tempDir = await getTemporaryDirectory();
+        final audioFile = File('${tempDir.path}/temp_audio_${DateTime.now().millisecondsSinceEpoch}.mp3');
+        await audioFile.writeAsBytes(audioData);
+
+        await _audioPlayer.setFilePath(audioFile.path);
+        print('Audio loaded: ${audioFile.path}');
+      }
+    } catch (e) {
+      print('Error setting up audio: $e');
+    }
+  }
+
   // Animation controls
   void _controlAnimation(String action) {
     if (_lottieController == null) return;
@@ -229,16 +287,27 @@ class _LottieZipScreenState extends State<LottieZipScreen>
     switch (action) {
       case 'play':
         _lottieController!.forward();
+        // Play audio if available
+        if (_extractedAudio != null && !kIsWeb) {
+          _audioPlayer.play();
+        }
         break;
       case 'pause':
         _lottieController!.stop();
+        _audioPlayer.pause();
         break;
       case 'stop':
         _lottieController!.reset();
+        _audioPlayer.stop();
         break;
       case 'restart':
         _lottieController!.reset();
         _lottieController!.forward();
+        // Restart audio if available
+        if (_extractedAudio != null && !kIsWeb) {
+          _audioPlayer.seek(Duration.zero);
+          _audioPlayer.play();
+        }
         break;
     }
   }
@@ -328,7 +397,7 @@ class _LottieZipScreenState extends State<LottieZipScreen>
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  'Tap to select Lottie/BodyMovin zip file containing Frame16 folder with animation data',
+                  'Tap to select your 287081348.zip file\nContaining Frame16 folder with animation data',
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     fontSize: 14,
@@ -473,8 +542,22 @@ class _LottieZipScreenState extends State<LottieZipScreen>
               ),
               const SizedBox(width: 12),
               Expanded(
+                child: _buildInfoCard('Audio',
+                    _extractedAudio != null ? 'Found' : 'Not Found'),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              Expanded(
                 child: _buildInfoCard('Template',
                     _templateData != null ? 'Found' : 'Not Found'),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: _buildInfoCard('Audio File',
+                    _audioFileName ?? 'None'),
               ),
             ],
           ),
@@ -543,6 +626,90 @@ class _LottieZipScreenState extends State<LottieZipScreen>
                     ),
                   );
                 },
+              ),
+            ),
+          ],
+
+          // Audio Preview
+          if (_extractedAudio != null) ...[
+            const SizedBox(height: 20),
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.green.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: Colors.green.withOpacity(0.3)),
+              ),
+              child: Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Colors.green.withOpacity(0.2),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      Icons.audiotrack,
+                      color: Colors.green,
+                      size: 24,
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'Audio File Found',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.green,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          _audioFileName ?? 'Unknown',
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: Colors.green[700],
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          'Size: ${(_extractedAudio!.length / 1024).toStringAsFixed(1)} KB',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Colors.green[600],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  if (!kIsWeb) // Audio controls only on mobile
+                    StreamBuilder<PlayerState>(
+                      stream: _audioPlayer.playerStateStream,
+                      builder: (context, snapshot) {
+                        final playerState = snapshot.data;
+                        final isPlaying = playerState?.playing ?? false;
+
+                        return IconButton(
+                          onPressed: () {
+                            if (isPlaying) {
+                              _audioPlayer.pause();
+                            } else {
+                              _audioPlayer.play();
+                            }
+                          },
+                          icon: Icon(
+                            isPlaying ? Icons.pause : Icons.play_arrow,
+                            color: Colors.green,
+                            size: 28,
+                          ),
+                        );
+                      },
+                    ),
+                ],
               ),
             ),
           ],
@@ -724,6 +891,36 @@ class _LottieZipScreenState extends State<LottieZipScreen>
               ),
             ],
           ),
+
+          // Audio Info
+          if (_extractedAudio != null) ...[
+            const SizedBox(height: 16),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.amber.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: Colors.amber.withOpacity(0.3)),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(Icons.music_note, color: Colors.amber, size: 20),
+                  const SizedBox(width: 8),
+                  Text(
+                    kIsWeb
+                        ? 'Audio found but playback limited on web'
+                        : 'Audio will sync with animation',
+                    style: TextStyle(
+                      color: Colors.amber[700],
+                      fontSize: 12,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
         ],
       ),
     );
