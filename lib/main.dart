@@ -453,9 +453,10 @@ class _LottieZipScreenState extends State<LottieZipScreen>
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const Row(
+            crossAxisAlignment: CrossAxisAlignment.end,
             children: [
-              Icon(Icons.folder, color: Colors.amber, size: 24),
-              SizedBox(width: 8),
+              Icon(Icons.folder_zip, color: Colors.amber, size: 32),
+              SizedBox(width: 4),
               Text(
                 'ZIP File Information',
                 style: TextStyle(

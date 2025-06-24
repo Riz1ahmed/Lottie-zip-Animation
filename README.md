@@ -1,6 +1,7 @@
 # 🎬 Lottie ZIP Demo
 
-A Flutter demo application that extracts and previews Lottie animations from ZIP files with embedded images.
+A Flutter demo application that extracts and previews Lottie animations from ZIP files with embedded
+images.
 
 ![Flutter](https://img.shields.io/badge/Flutter-02569B?style=for-the-badge&logo=flutter&logoColor=white)
 ![Dart](https://img.shields.io/badge/Dart-0175C2?style=for-the-badge&logo=dart&logoColor=white)
@@ -8,8 +9,8 @@ A Flutter demo application that extracts and previews Lottie animations from ZIP
 
 ## 📱 Screenshots
 
-| Upload Screen | File Info | Animation Preview |
-|:-------------:|:---------:|:----------------:|
+|                                Upload Screen                                 |                                 File Info                                 |                              Animation Preview                               |
+|:----------------------------------------------------------------------------:|:-------------------------------------------------------------------------:|:----------------------------------------------------------------------------:|
 | ![Upload](https://via.placeholder.com/200x400/4285F4/FFFFFF?text=Upload+ZIP) | ![Info](https://via.placeholder.com/200x400/34A853/FFFFFF?text=File+Info) | ![Preview](https://via.placeholder.com/200x400/EA4335/FFFFFF?text=Animation) |
 
 ## 🎯 Features
@@ -98,20 +99,24 @@ your-animation.zip
 ## 📖 How to Use
 
 ### Step 1: Launch the App
+
 - Open the app on your device or emulator
 - You'll see the main upload screen
 
 ### Step 2: Upload ZIP File
+
 - Tap **"Choose ZIP File"** button
 - Select your Lottie animation ZIP file
 - The app will automatically extract and process the contents
 
 ### Step 3: View File Information
+
 - See extracted file details
 - Browse image thumbnails
 - Check debug information for asset matching
 
 ### Step 4: Preview Animation
+
 - Watch the Lottie animation with embedded images
 - Use playback controls:
     - ▶️ **Play** - Start animation
@@ -133,25 +138,31 @@ your-animation.zip
 ### Key Components
 
 #### 1. **ZIP Processing**
+
 ```dart
-Future<void> _processZipFile(Uint8List zipBytes, String fileName){}
+Future<void> _processZipFile(Uint8List zipBytes, String fileName) {}
 ```
+
 - Extracts ZIP archive
 - Finds main animation folder
 - Processes JSON and image files
 
 #### 2. **Image Conversion**
+
 ```dart
-Map<String, dynamic> _replaceImagesInAnimationData(){}
+Map<String, dynamic> _replaceImagesInAnimationData() {}
 ```
+
 - Converts images to base64 data URLs
 - Replaces image paths in animation JSON
 - Supports multiple image formats
 
 #### 3. **Lottie Rendering**
+
 ```dart
-Widget _buildLottieAnimation(){}
+Widget _buildLottieAnimation() {}
 ```
+
 - Creates Lottie widget with modified data
 - Handles animation lifecycle
 - Provides error handling
@@ -161,11 +172,13 @@ Widget _buildLottieAnimation(){}
 The app includes comprehensive debugging features:
 
 ### Console Logging
+
 - File extraction progress
 - Asset processing information
 - Error details and stack traces
 
 ### Visual Debug Panel
+
 - **Green indicators**: Assets found and matched
 - **Red indicators**: Missing or mismatched assets
 - File size information
@@ -182,11 +195,13 @@ The app includes comprehensive debugging features:
 ## 📊 Performance
 
 ### Memory Usage
+
 - Images are converted to base64 (increases size ~33%)
 - Temporary files are cleaned up automatically
 - Animation controllers are properly disposed
 
 ### Supported File Sizes
+
 - **Recommended**: < 10MB ZIP files
 - **Maximum**: Limited by device memory
 - **Images**: JPEG, PNG, GIF, WebP formats
@@ -224,11 +239,13 @@ graph TD
 ## 🎨 Customization
 
 ### UI Theming
+
 - Material Design 3 components
 - Customizable color scheme
 - Responsive layout design
 
 ### Animation Controls
+
 - Adjustable playback speed
 - Loop control options
 - Progress tracking
