@@ -70,10 +70,9 @@ your-animation.zip
       flutter:
         sdk: flutter
       cupertino_icons: ^1.0.8
-      lottie: ^3.3.1
-      file_picker: ^10.2.0
-      path_provider: ^2.1.5
       archive: ^4.0.7
+      file_picker: ^10.2.0
+      lottie: ^3.3.1
     
     dev_dependencies:
       flutter_test:
@@ -133,7 +132,6 @@ your-animation.zip
 | `archive`       | ^4.0.7  | ZIP file extraction        |
 | `file_picker`   | ^10.2.0 | File selection from device |
 | `lottie`        | ^3.3.1  | Lottie animation rendering |
-| `path_provider` | ^2.1.5  | Temporary file storage     |
 
 ### Key Components
 

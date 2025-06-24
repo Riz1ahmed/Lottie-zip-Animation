@@ -25,14 +25,12 @@ flutter:
   uses-material-design: true
 */
 
-import 'dart:io';
 import 'dart:convert';
-import 'dart:typed_data';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:archive/archive.dart';
 import 'package:lottie/lottie.dart';
-import 'package:path_provider/path_provider.dart';
 
 void main() {
   runApp(const LottieZipDemoApp());
@@ -56,7 +54,7 @@ class LottieZipDemoApp extends StatelessWidget {
 }
 
 class LottieZipScreen extends StatefulWidget {
-  const LottieZipScreen({super.key});
+  const LottieZipScreen({Key? key}) : super(key: key);
 
   @override
   State<LottieZipScreen> createState() => _LottieZipScreenState();
@@ -70,7 +68,7 @@ class _LottieZipScreenState extends State<LottieZipScreen>
   String? _error;
   Map<String, dynamic>? _animationData;
   Map<String, dynamic>? _templateData;
-  Map<String, File>? _extractedImages;
+  Map<String, Uint8List>? _extractedImages; // Changed for web compatibility
   String? _zipFileName;
   String? _mainFolderName;
 
@@ -123,11 +121,11 @@ class _LottieZipScreenState extends State<LottieZipScreen>
   // Process the ZIP file
   Future<void> _processZipFile(Uint8List zipBytes, String fileName) async {
     try {
-      debugPrint('xyz: Processing ZIP file: $fileName');
+      print('Processing ZIP file: $fileName');
 
       // Extract ZIP
       final archive = ZipDecoder().decodeBytes(zipBytes);
-      debugPrint('xyz: ZIP extracted, ${archive.length} files found');
+      print('ZIP extracted, ${archive.length} files found');
 
       // Find main folder (Frame16 or similar)
       String? mainFolder;
@@ -144,51 +142,37 @@ class _LottieZipScreenState extends State<LottieZipScreen>
         throw Exception('No valid animation folder found in ZIP');
       }
 
-      debugPrint('xyz: Main folder found: $mainFolder');
+      print('Main folder found: $mainFolder');
 
-      // Get temporary directory
-      final tempDir = await getTemporaryDirectory();
-      final extractDir = Directory(
-          '${tempDir.path}/lottie_demo_${DateTime.now().millisecondsSinceEpoch}'
-      );
-      await extractDir.create(recursive: true);
-
-      Map<String, File> images = {};
+      Map<String, Uint8List> images = {};
       Map<String, dynamic>? animationData;
       Map<String, dynamic>? templateData;
 
-      // Extract files
+      // Extract files directly from ZIP (no temporary files for web)
       for (final file in archive) {
         if (!file.isFile) continue;
 
-        debugPrint('xyz: Processing file: ${file.name}');
-
-        final filePath = '${extractDir.path}/${file.name}';
-        final fileDir = Directory(filePath.substring(0, filePath.lastIndexOf('/')));
-        await fileDir.create(recursive: true);
-
-        final extractedFile = File(filePath);
-        await extractedFile.writeAsBytes(file.content as List<int>);
+        print('Processing file: ${file.name}');
 
         // Check file type
         if (file.name.endsWith('data.json') && file.name.contains(mainFolder)) {
-          debugPrint('xyz: Found data.json');
-          final content = await extractedFile.readAsString();
+          print('Found data.json');
+          final content = String.fromCharCodes(file.content);
           animationData = json.decode(content);
 
           // Debug: Print asset information
           if (animationData?['assets'] != null) {
-            debugPrint('xyz: Animation assets found:');
+            print('Animation assets found:');
             for (var asset in animationData!['assets']) {
               if (asset['p'] != null) {
-                debugPrint('xyz:   - Asset: ${asset['p']} (id: ${asset['id']})');
+                print('  - Asset: ${asset['p']} (id: ${asset['id']})');
               }
             }
           }
 
         } else if (file.name.endsWith('template.json') && file.name.contains(mainFolder)) {
-          debugPrint('xyz: Found template.json');
-          final content = await extractedFile.readAsString();
+          print('Found template.json');
+          final content = String.fromCharCodes(file.content);
           templateData = json.decode(content);
         } else if (file.name.contains('images/')) {
           // More flexible image detection
@@ -196,16 +180,16 @@ class _LottieZipScreenState extends State<LottieZipScreen>
           final extension = fileName.toLowerCase().split('.').last;
 
           if (['jpg', 'jpeg', 'png', 'gif', 'webp'].contains(extension)) {
-            images[fileName] = extractedFile;
-            debugPrint('xyz: Found image: $fileName (size: ${extractedFile.lengthSync()} bytes)');
+            images[fileName] = Uint8List.fromList(file.content);
+            print('Found image: $fileName (size: ${file.content.length} bytes)');
           }
         }
       }
 
-      debugPrint('xyz: Processing complete:');
-      debugPrint('xyz: - Animation data: ${animationData != null ? 'Found' : 'Not found'}');
-      debugPrint('xyz: - Template data: ${templateData != null ? 'Found' : 'Not found'}');
-      debugPrint('xyz: - Images: ${images.length} found');
+      print('Processing complete:');
+      print('- Animation data: ${animationData != null ? 'Found' : 'Not found'}');
+      print('- Template data: ${templateData != null ? 'Found' : 'Not found'}');
+      print('- Images: ${images.length} found');
 
       // Update state
       setState(() {
@@ -223,7 +207,7 @@ class _LottieZipScreenState extends State<LottieZipScreen>
       }
 
     } catch (e) {
-      debugPrint('xyz: Error processing ZIP: $e');
+      print('Error processing ZIP: $e');
       setState(() {
         _error = 'Error processing ZIP: $e';
         _isLoading = false;
@@ -344,7 +328,7 @@ class _LottieZipScreenState extends State<LottieZipScreen>
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  'Tap to select your lottie zip file containing Frame16 folder with animation data',
+                  'Tap to select Lottie/BodyMovin zip file containing Frame16 folder with animation data',
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     fontSize: 14,
@@ -453,10 +437,9 @@ class _LottieZipScreenState extends State<LottieZipScreen>
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const Row(
-            crossAxisAlignment: CrossAxisAlignment.end,
             children: [
-              Icon(Icons.folder_zip, color: Colors.amber, size: 32),
-              SizedBox(width: 4),
+              Icon(Icons.folder, color: Colors.amber, size: 24),
+              SizedBox(width: 8),
               Text(
                 'ZIP File Information',
                 style: TextStyle(
@@ -527,7 +510,7 @@ class _LottieZipScreenState extends State<LottieZipScreen>
                       children: [
                         ClipRRect(
                           borderRadius: BorderRadius.circular(8),
-                          child: Image.file(
+                          child: Image.memory(
                             entry.value,
                             width: 60,
                             height: 60,
@@ -771,7 +754,7 @@ class _LottieZipScreenState extends State<LottieZipScreen>
         fit: BoxFit.contain,
         repeat: true,
         errorBuilder: (context, error, stackTrace) {
-          debugPrint('xyz: Lottie error: $error');
+          print('Lottie error: $error');
           return const Center(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -788,7 +771,7 @@ class _LottieZipScreenState extends State<LottieZipScreen>
         },
       );
     } catch (e) {
-      debugPrint('xyz: Animation build error: $e');
+      print('Animation build error: $e');
       return Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -816,22 +799,21 @@ class _LottieZipScreenState extends State<LottieZipScreen>
       for (var asset in assets) {
         if (asset is Map<String, dynamic> && asset['p'] != null) {
           final imageName = asset['p'] as String;
-          debugPrint('xyz: Processing asset: $imageName');
+          print('Processing asset: $imageName');
 
-          // Find matching image file
-          File? imageFile;
+          // Find matching image data
+          Uint8List? imageData;
           for (var entry in _extractedImages!.entries) {
             if (entry.key == imageName || entry.key.contains(imageName)) {
-              imageFile = entry.value;
+              imageData = entry.value;
               break;
             }
           }
 
-          if (imageFile != null && imageFile.existsSync()) {
+          if (imageData != null) {
             try {
               // Convert image to base64 data URL
-              final imageBytes = imageFile.readAsBytesSync();
-              final base64Image = base64Encode(imageBytes);
+              final base64Image = base64Encode(imageData);
               final mimeType = _getMimeType(imageName);
               final dataUrl = 'data:$mimeType;base64,$base64Image';
 
@@ -840,12 +822,12 @@ class _LottieZipScreenState extends State<LottieZipScreen>
               asset['u'] = ''; // Clear the base URL
               asset['e'] = 1; // Mark as embedded
 
-              debugPrint('xyz: Replaced $imageName with data URL (${imageBytes.length} bytes)');
+              print('Replaced $imageName with data URL (${imageData.length} bytes)');
             } catch (e) {
-              debugPrint('xyz: Error converting $imageName to base64: $e');
+              print('Error converting $imageName to base64: $e');
             }
           } else {
-            debugPrint('xyz: Image file not found for: $imageName');
+            print('Image data not found for: $imageName');
           }
         }
       }
