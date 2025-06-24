@@ -57,29 +57,30 @@ your-animation.zip
 
 2. **Replace `pubspec.yaml` with:**
    ```yaml
-   name: lottie_zip_demo
-   description: A simple demo app to test Lottie ZIP file upload and preview
-
-   version: 1.0.0+1
-
-   environment:
-     sdk: '>=2.19.0 <4.0.0'
-
-   dependencies:
-     flutter:
-       sdk: flutter
-     lottie: ^2.7.0
-     file_picker: ^6.1.1
-     archive: ^3.4.9
-     path_provider: ^2.1.1
-
-   dev_dependencies:
-     flutter_test:
-       sdk: flutter
-     flutter_lints: ^3.0.0
-
-   flutter:
-     uses-material-design: true
+    name: lottie_zip_animation
+    description: "A new Flutter project."
+    publish_to: 'none'
+    version: 1.0.0+1
+    
+    environment:
+      sdk: ^3.8.1
+    
+    dependencies:
+      flutter:
+        sdk: flutter
+      cupertino_icons: ^1.0.8
+      lottie: ^3.3.1
+      file_picker: ^10.2.0
+      path_provider: ^2.1.5
+      archive: ^4.0.7
+    
+    dev_dependencies:
+      flutter_test:
+        sdk: flutter
+      flutter_lints: ^5.0.0
+    
+    flutter:
+      uses-material-design: true
    ```
 
 3. **Replace `lib/main.dart` with the provided code**
@@ -122,18 +123,18 @@ your-animation.zip
 
 ### Dependencies
 
-| Package | Version | Purpose |
-|---------|---------|---------|
-| `lottie` | ^2.7.0 | Lottie animation rendering |
-| `file_picker` | ^6.1.1 | File selection from device |
-| `archive` | ^3.4.9 | ZIP file extraction |
-| `path_provider` | ^2.1.1 | Temporary file storage |
+| Package         | Version | Purpose                    |
+|-----------------|---------|----------------------------|
+| `archive`       | ^4.0.7  | ZIP file extraction        |
+| `file_picker`   | ^10.2.0 | File selection from device |
+| `lottie`        | ^3.3.1  | Lottie animation rendering |
+| `path_provider` | ^2.1.5  | Temporary file storage     |
 
 ### Key Components
 
 #### 1. **ZIP Processing**
 ```dart
-Future<void> _processZipFile(Uint8List zipBytes, String fileName)
+Future<void> _processZipFile(Uint8List zipBytes, String fileName){}
 ```
 - Extracts ZIP archive
 - Finds main animation folder
@@ -141,7 +142,7 @@ Future<void> _processZipFile(Uint8List zipBytes, String fileName)
 
 #### 2. **Image Conversion**
 ```dart
-Map<String, dynamic> _replaceImagesInAnimationData()
+Map<String, dynamic> _replaceImagesInAnimationData(){}
 ```
 - Converts images to base64 data URLs
 - Replaces image paths in animation JSON
@@ -149,7 +150,7 @@ Map<String, dynamic> _replaceImagesInAnimationData()
 
 #### 3. **Lottie Rendering**
 ```dart
-Widget _buildLottieAnimation()
+Widget _buildLottieAnimation(){}
 ```
 - Creates Lottie widget with modified data
 - Handles animation lifecycle
@@ -172,11 +173,11 @@ The app includes comprehensive debugging features:
 
 ### Common Issues
 
-| Issue | Cause | Solution |
-|-------|--------|----------|
-| Animation not loading | Invalid JSON format | Check data.json structure |
-| Images not showing | Image path mismatch | Check debug panel for asset mapping |
-| ZIP extraction fails | Unsupported ZIP structure | Ensure proper folder hierarchy |
+| Issue                 | Cause                     | Solution                            |
+|-----------------------|---------------------------|-------------------------------------|
+| Animation not loading | Invalid JSON format       | Check data.json structure           |
+| Images not showing    | Image path mismatch       | Check debug panel for asset mapping |
+| ZIP extraction fails  | Unsupported ZIP structure | Ensure proper folder hierarchy      |
 
 ## 📊 Performance
 
@@ -309,10 +310,6 @@ Potential improvements for production use:
 
 ---
 
-<div align="center">
+## 💫 Happy Animating! 🎬✨
 
-**Happy Animating! 🎬✨**
-
-Built with ❤️ using Flutter & Lottie
-
-</div>
+**Built with ❤️ using Flutter & Lottie**
