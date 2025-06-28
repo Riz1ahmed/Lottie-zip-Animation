@@ -3,24 +3,23 @@ import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:provider/provider.dart';
-import '../services/lottie_zip_service.dart';
-import '../models/lottie_zip_model.dart';
+import 'util.dart';
+import 'lottie_zip_notifier.dart';
 import 'widgets/upload_section.dart';
 import 'widgets/loading_section.dart';
 import 'widgets/error_section.dart';
 import 'widgets/file_info_section.dart';
 import 'widgets/animation_section.dart';
 
-class LottieZipScreen extends StatefulWidget {
-  const LottieZipScreen({super.key});
+class LottieZipViewerScreen extends StatefulWidget {
+  const LottieZipViewerScreen({super.key});
 
   @override
-  State<LottieZipScreen> createState() => _LottieZipScreenState();
+  State<LottieZipViewerScreen> createState() => _LottieZipViewerScreenState();
 }
 
-class _LottieZipScreenState extends State<LottieZipScreen>
+class _LottieZipViewerScreenState extends State<LottieZipViewerScreen>
     with TickerProviderStateMixin {
-
   // Animation controller
   AnimationController? _lottieController;
 
@@ -28,7 +27,7 @@ class _LottieZipScreenState extends State<LottieZipScreen>
   final AudioPlayer _audioPlayer = AudioPlayer();
 
   // Service class for ZIP processing
-  final LottieZipService _zipService = LottieZipService();
+  //final LottieZipHelper _zipService = LottieZipHelper();
 
   @override
   void initState() {
@@ -53,48 +52,48 @@ class _LottieZipScreenState extends State<LottieZipScreen>
       );
 
       if (result != null && result.files.single.bytes != null) {
-        final model = Provider.of<LottieZipModel>(context, listen: false);
-        model.setLoading(true);
-        model.reset();
+        final notifier = Provider.of<LottieZipNotifier>(context, listen: false);
+        notifier.setLoading(true);
 
+        notifier.reset();
         await _processZipFile(
           result.files.single.bytes!,
           result.files.single.name,
         );
       }
     } catch (e) {
-      final model = Provider.of<LottieZipModel>(context, listen: false);
-      model.setError('Error picking file: $e');
-      model.setLoading(false);
+      final notifier = Provider.of<LottieZipNotifier>(context, listen: false);
+      notifier.setError('Error picking file: $e');
+      notifier.setLoading(false);
     }
   }
 
   // Process the ZIP file (delegated to service)
-  Future<void> _processZipFile(Uint8List zipBytes, String fileName) async {
+  Future<void> _processZipFile(Uint8List zipFile, String fileName) async {
     try {
-      final model = Provider.of<LottieZipModel>(context, listen: false);
-      final result = await _zipService.processZipFile(zipBytes, fileName);
+      final notifier = Provider.of<LottieZipNotifier>(context, listen: false);
+      final lottieZip = await LottieZipHelper.processZipFile(zipFile, fileName);
 
-      model.setZipData(
-        animationData: result.animationData,
-        templateData: result.templateData,
-        extractedImages: result.images,
-        extractedAudio: result.audioData,
-        audioFileName: result.audioFileName,
-        zipFileName: result.zipFileName,
-        mainFolderName: result.mainFolderName,
+      notifier.setZipData(
+        animationData: lottieZip.animationData,
+        templateData: lottieZip.templateData,
+        extractedImages: lottieZip.images,
+        extractedAudio: lottieZip.audioData,
+        audioFileName: lottieZip.audioFileName,
+        zipFileName: lottieZip.zipFileName,
+        mainFolderName: lottieZip.mainFolderName,
       );
-      model.setLoading(false);
+      notifier.setLoading(false);
 
-      if (result.animationData != null) {
+      if (lottieZip.animationData != null) {
         _lottieController?.reset();
       }
 
-      if (result.audioData != null) {
-        await _zipService.setupAudio(_audioPlayer, result.audioData!);
+      if (lottieZip.audioData != null) {
+        await _audioPlayer.setBytes(lottieZip.audioData!);
       }
     } catch (e) {
-      final model = Provider.of<LottieZipModel>(context, listen: false);
+      final model = Provider.of<LottieZipNotifier>(context, listen: false);
       model.setError('Error processing ZIP: $e');
       model.setLoading(false);
     }
@@ -103,13 +102,13 @@ class _LottieZipScreenState extends State<LottieZipScreen>
   // Animation controls
   void _controlAnimation(String action) {
     if (_lottieController == null) return;
-    final model = Provider.of<LottieZipModel>(context, listen: false);
+    final notifier = Provider.of<LottieZipNotifier>(context, listen: false);
 
     switch (action) {
       case 'play':
         _lottieController!.forward();
         // Play audio if available
-        if (model.extractedAudio != null && !kIsWeb) {
+        if (notifier.extractedAudio != null && !kIsWeb) {
           _audioPlayer.play();
         }
         break;
@@ -125,7 +124,7 @@ class _LottieZipScreenState extends State<LottieZipScreen>
         _lottieController!.reset();
         _lottieController!.forward();
         // Restart audio if available
-        if (model.extractedAudio != null && !kIsWeb) {
+        if (notifier.extractedAudio != null && !kIsWeb) {
           _audioPlayer.seek(Duration.zero);
           _audioPlayer.play();
         }
@@ -149,7 +148,7 @@ class _LottieZipScreenState extends State<LottieZipScreen>
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
-        child: Consumer<LottieZipModel>(
+        child: Consumer<LottieZipNotifier>(
           builder: (context, model, child) {
             return Column(
               children: [
@@ -162,18 +161,18 @@ class _LottieZipScreenState extends State<LottieZipScreen>
                 if (model.error != null) ErrorSection(error: model.error!),
 
                 // File Info Section
-                if (model.zipFileName != null) FileInfoSection(
-                  audioPlayer: _audioPlayer,
-                ),
+                if (model.zipFileName != null)
+                  FileInfoSection(audioPlayer: _audioPlayer),
 
                 // Animation Preview Section
-                if (model.animationData != null) AnimationSection(
-                  controller: _lottieController!,
-                  onControlAction: _controlAnimation,
-                ),
+                if (model.animationData != null)
+                  AnimationSection(
+                    controller: _lottieController!,
+                    onControlAction: _controlAnimation,
+                  ),
               ],
             );
-          }
+          },
         ),
       ),
     );

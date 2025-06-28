@@ -1,36 +1,26 @@
 import 'dart:convert';
-import 'dart:typed_data';
 import 'dart:io';
 import 'package:archive/archive.dart';
 import 'package:flutter/foundation.dart';
+import 'package:lottie_zip_animation/home/lottie_zip_data.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:just_audio/just_audio.dart';
 
-class LottieZipResult {
-  final Map<String, dynamic>? animationData;
-  final Map<String, dynamic>? templateData;
-  final Map<String, Uint8List>? images;
-  final Uint8List? audioData;
-  final String? audioFileName;
-  final String? zipFileName;
-  final String? mainFolderName;
-
-  LottieZipResult({
-    this.animationData,
-    this.templateData,
-    this.images,
-    this.audioData,
-    this.audioFileName,
-    this.zipFileName,
-    this.mainFolderName,
-  });
-}
-
-class LottieZipService {
-  Future<LottieZipResult> processZipFile(Uint8List zipBytes, String fileName) async {
+class LottieZipHelper {
+  ///
+  ///Extract the lottie contents from ZIP.
+  ///Contents are:
+  ///- data.json: The main animation data
+  ///- template.json: Optional template data
+  ///- images/: Folder containing all images used in the animation
+  ///- audio files: Optional audio files used in the animation
+  static Future<LottieZipData> processZipFile(
+    Uint8List zipBytes,
+    String fileName,
+  ) async {
     try {
       print('Processing ZIP file: $fileName');
-      final archive = ZipDecoder().decodeBytes(zipBytes);
+      final Archive archive = ZipDecoder().decodeBytes(zipBytes);
       print('ZIP extracted, ${archive.length} files found');
 
       String? mainFolder;
@@ -41,10 +31,12 @@ class LottieZipService {
       String? audioFileName;
 
       // Check if we have files directly in the root of ZIP
-      bool hasDataJsonInRoot = archive.files.any((file) =>
-          file.isFile && file.name == 'data.json');
-      bool hasImagesInRoot = archive.files.any((file) =>
-          file.isFile && file.name.startsWith('images/'));
+      bool hasDataJsonInRoot = archive.files.any(
+        (file) => file.isFile && file.name == 'data.json',
+      );
+      bool hasImagesInRoot = archive.files.any(
+        (file) => file.isFile && file.name.startsWith('images/'),
+      );
 
       // If both data.json and images/ are in root
       if (hasDataJsonInRoot && hasImagesInRoot) {
@@ -61,10 +53,12 @@ class LottieZipService {
           final folderName = file.name.split('/')[0];
 
           // Check if this folder has data.json and images/
-          bool hasFolderDataJson = archive.files.any((f) =>
-              f.isFile && f.name == '$folderName/data.json');
-          bool hasFolderImages = archive.files.any((f) =>
-              f.isFile && f.name.startsWith('$folderName/images/'));
+          bool hasFolderDataJson = archive.files.any(
+            (f) => f.isFile && f.name == '$folderName/data.json',
+          );
+          bool hasFolderImages = archive.files.any(
+            (f) => f.isFile && f.name.startsWith('$folderName/images/'),
+          );
 
           if (hasFolderDataJson && hasFolderImages) {
             mainFolder = folderName;
@@ -80,7 +74,7 @@ class LottieZipService {
       }
 
       // Extract files
-      for (final file in archive) {
+      for (final ArchiveFile file in archive) {
         if (!file.isFile) continue;
         String fileName = file.name;
 
@@ -91,10 +85,11 @@ class LottieZipService {
 
         print('Processing file: $fileName');
 
-        // Process based on file type
+        ///
+        ///The animation data.json
         if (fileName == 'data.json') {
           print('Found data.json');
-          final content = String.fromCharCodes(file.content);
+          final String content = String.fromCharCodes(file.content);
           animationData = json.decode(content);
 
           if (animationData?['assets'] != null) {
@@ -105,36 +100,53 @@ class LottieZipService {
               }
             }
           }
-        } else if (fileName == 'template.json') {
+        }
+        ///
+        ///Template data
+        else if (fileName == 'template.json') {
           print('Found template.json');
           final content = String.fromCharCodes(file.content);
           templateData = json.decode(content);
-        } else if (fileName.startsWith('images/')) {
+        }
+        ///
+        ///Images
+        else if (fileName.startsWith('images/')) {
           final imageName = fileName.split('/').last;
           final extension = imageName.toLowerCase().split('.').last;
 
           if (['jpg', 'jpeg', 'png', 'gif', 'webp'].contains(extension)) {
             images[imageName] = Uint8List.fromList(file.content);
-            print('Found image: $imageName (size: ${file.content.length} bytes)');
+            print(
+              'Found image: $imageName (size: ${file.content.length} bytes)',
+            );
           }
-        } else {
+        }
+        ///
+        /// Audio files
+        else {
           // Check for audio files
           final extension = fileName.toLowerCase().split('.').last;
           if (['mp3', 'wav', 'aac', 'm4a', 'ogg'].contains(extension)) {
             audioData = Uint8List.fromList(file.content);
             audioFileName = fileName.split('/').last;
-            print('Found audio: $audioFileName (size: ${file.content.length} bytes)');
+            print(
+              'Found audio: $audioFileName (size: ${file.content.length} bytes)',
+            );
           }
         }
       }
 
       print('Processing complete:');
-      print('- Animation data: ${animationData != null ? 'Found' : 'Not found'}');
+      print(
+        '- Animation data: ${animationData != null ? 'Found' : 'Not found'}',
+      );
       print('- Template data: ${templateData != null ? 'Found' : 'Not found'}');
       print('- Images: ${images.length} found');
-      print('- Audio: ${audioData != null ? 'Found ($audioFileName)' : 'Not found'}');
+      print(
+        '- Audio: ${audioData != null ? 'Found ($audioFileName)' : 'Not found'}',
+      );
 
-      return LottieZipResult(
+      return LottieZipData(
         animationData: animationData,
         templateData: templateData,
         images: images,
@@ -143,19 +155,23 @@ class LottieZipService {
         zipFileName: fileName,
         mainFolderName: mainFolder,
       );
-
     } catch (e) {
       print('Error processing ZIP: $e');
       rethrow;
     }
   }
+}
 
-  Future<void> setupAudio(AudioPlayer audioPlayer, Uint8List audioData) async {
+extension AudioPlayerExtension on AudioPlayer {
+  ///Load audio into the AudioPlayer.
+  Future<void> setBytes(Uint8List audioData) async {
     if (kIsWeb) return;
 
     final tempDir = await getTemporaryDirectory();
-    final audioFile = File('${tempDir.path}/temp_audio_${DateTime.now().millisecondsSinceEpoch}.mp3');
+    final audioFile = File(
+      '${tempDir.path}/temp_audio_${DateTime.now().millisecondsSinceEpoch}.mp3',
+    );
     await audioFile.writeAsBytes(audioData);
-    await audioPlayer.setFilePath(audioFile.path);
+    await setFilePath(audioFile.path);
   }
 }

@@ -1,6 +1,6 @@
 import 'package:flutter/foundation.dart';
 
-class LottieZipModel with ChangeNotifier {
+class LottieZipNotifier with ChangeNotifier {
   bool isLoading = false;
   String? error;
   Map<String, dynamic>? animationData;

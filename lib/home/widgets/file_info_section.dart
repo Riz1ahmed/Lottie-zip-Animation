@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:provider/provider.dart';
-import '../../models/lottie_zip_model.dart';
+import '../lottie_zip_notifier.dart';
 import 'info_card_row.dart';
 import 'images_preview.dart';
 import 'audio_preview_widget.dart';
@@ -18,7 +18,7 @@ class FileInfoSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     // Access the model through Provider
-    final model = Provider.of<LottieZipModel>(context);
+    final model = Provider.of<LottieZipNotifier>(context);
 
     return Container(
       width: double.infinity,

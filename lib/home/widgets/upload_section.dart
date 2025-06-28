@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 
 class UploadSection extends StatelessWidget {
-  final VoidCallback onTap;
   const UploadSection({super.key, required this.onTap});
+
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
@@ -61,7 +62,10 @@ class UploadSection extends StatelessWidget {
                 ),
                 const SizedBox(height: 20),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 24,
+                    vertical: 12,
+                  ),
                   decoration: BoxDecoration(
                     color: Colors.blue,
                     borderRadius: BorderRadius.circular(25),
@@ -82,4 +86,3 @@ class UploadSection extends StatelessWidget {
     );
   }
 }
-

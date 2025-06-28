@@ -3,7 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:lottie/lottie.dart';
 import 'package:provider/provider.dart';
-import '../../models/lottie_zip_model.dart';
+import '../lottie_zip_notifier.dart';
 
 class LottiePreviewWidget extends StatelessWidget {
   final AnimationController controller;
@@ -15,7 +15,7 @@ class LottiePreviewWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final model = Provider.of<LottieZipModel>(context);
+    final model = Provider.of<LottieZipNotifier>(context);
     if (model.animationData == null) {
       return const Center(
         child: Text(
