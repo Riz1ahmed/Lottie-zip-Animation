@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:lottie_zip_animation/home/lottie_zip_notifier.dart';
+import 'package:provider/provider.dart';
 
-class ErrorSection extends StatelessWidget {
-  final String error;
-  const ErrorSection({super.key, required this.error});
+class ErrorView extends StatelessWidget {
+  const ErrorView({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final notifier = Provider.of<LottieZipNotifier>(context);
     return Container(
       margin: const EdgeInsets.only(bottom: 20),
       padding: const EdgeInsets.all(16),
@@ -20,7 +22,7 @@ class ErrorSection extends StatelessWidget {
           const SizedBox(width: 12),
           Expanded(
             child: Text(
-              error,
+              notifier.error!,
               style: const TextStyle(color: Colors.red, fontSize: 14),
             ),
           ),
@@ -29,4 +31,3 @@ class ErrorSection extends StatelessWidget {
     );
   }
 }
-

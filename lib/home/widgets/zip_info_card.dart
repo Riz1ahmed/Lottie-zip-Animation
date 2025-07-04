@@ -7,18 +7,12 @@ import 'images_preview.dart';
 import 'audio_preview_widget.dart';
 import 'debug_assets_widget.dart';
 
-class FileInfoSection extends StatelessWidget {
-  final AudioPlayer audioPlayer;
-
-  const FileInfoSection({
-    super.key,
-    required this.audioPlayer,
-  });
+class ZipInfoCard extends StatelessWidget {
+  const ZipInfoCard({super.key});
 
   @override
   Widget build(BuildContext context) {
-    // Access the model through Provider
-    final model = Provider.of<LottieZipNotifier>(context);
+    final notifier = Provider.of<LottieZipNotifier>(context);
 
     return Container(
       width: double.infinity,
@@ -54,36 +48,38 @@ class FileInfoSection extends StatelessWidget {
           ),
           const SizedBox(height: 16),
           InfoCardRow(
-            fileName: model.zipFileName!,
-            mainFolderName: model.mainFolderName!,
-            imagesCount: model.extractedImages?.length ?? 0,
-            hasAudio: model.extractedAudio != null,
-            hasTemplate: model.templateData != null,
-            audioFileName: model.audioFileName ?? 'None',
+            fileName: notifier.zipFileName!,
+            mainFolderName: notifier.mainFolderName!,
+            imagesCount: notifier.extractedImages?.length ?? 0,
+            hasAudio: notifier.extractedAudio != null,
+            hasTemplate: notifier.templateData != null,
+            audioFileName: notifier.audioFileName ?? 'None',
           ),
 
           // Images Preview
-          if (model.extractedImages != null && model.extractedImages!.isNotEmpty)
-            ImagesPreview(images: model.extractedImages!),
+          if (notifier.extractedImages != null &&
+              notifier.extractedImages!.isNotEmpty)
+            ImagesPreview(images: notifier.extractedImages!),
 
           // Audio Preview
-          if (model.extractedAudio != null)
+          if (notifier.extractedAudio != null)
             Column(
               children: [
                 const SizedBox(height: 20),
                 AudioPreviewWidget(
-                  audioData: model.extractedAudio!,
-                  audioFileName: model.audioFileName,
-                  audioPlayer: audioPlayer,
+                  audioData: notifier.extractedAudio!,
+                  audioFileName: notifier.audioFileName,
+                  audioPlayer: notifier.audioPlayer,
                 ),
               ],
             ),
 
           // Debug: Show expected vs found assets
-          if (model.animationData != null && model.animationData!['assets'] != null)
+          if (notifier.animationData != null &&
+              notifier.animationData!['assets'] != null)
             DebugAssetsWidget(
-              assets: model.animationData!['assets'] as List,
-              extractedImages: model.extractedImages,
+              assets: notifier.animationData!['assets'] as List,
+              extractedImages: notifier.extractedImages,
             ),
         ],
       ),

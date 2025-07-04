@@ -1,13 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:lottie_zip_animation/home/lottie_zip_notifier.dart';
+import 'package:provider/provider.dart';
 
-class UploadSection extends StatelessWidget {
-  const UploadSection({super.key, required this.onTap});
-
-  final VoidCallback onTap;
+class PickerCard extends StatelessWidget {
+  const PickerCard({super.key});
 
   @override
   Widget build(BuildContext context) {
     return Container(
+      margin: const EdgeInsets.only(bottom: 20),
       width: double.infinity,
       decoration: BoxDecoration(
         color: Colors.white,
@@ -24,7 +25,7 @@ class UploadSection extends StatelessWidget {
         color: Colors.transparent,
         child: InkWell(
           borderRadius: BorderRadius.circular(16),
-          onTap: onTap,
+          onTap: Provider.of<LottieZipNotifier>(context).pickZipFile,
           child: Container(
             padding: const EdgeInsets.all(40),
             child: Column(

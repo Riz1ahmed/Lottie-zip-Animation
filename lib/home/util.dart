@@ -25,8 +25,8 @@ class LottieZipHelper {
 
       String? mainFolder;
       Map<String, Uint8List> images = {};
-      Map<String, dynamic>? animationData;
-      Map<String, dynamic>? templateData;
+      Map<String, dynamic>? animDataJson;
+      Map<String, dynamic>? templateJson;
       Uint8List? audioData;
       String? audioFileName;
 
@@ -90,11 +90,11 @@ class LottieZipHelper {
         if (fileName == 'data.json') {
           print('Found data.json');
           final String content = String.fromCharCodes(file.content);
-          animationData = json.decode(content);
+          animDataJson = json.decode(content);
 
-          if (animationData?['assets'] != null) {
+          if (animDataJson?['assets'] != null) {
             print('Animation assets found:');
-            for (var asset in animationData!['assets']) {
+            for (var asset in animDataJson!['assets']) {
               if (asset['p'] != null) {
                 print('  - Asset: ${asset['p']} (id: ${asset['id']})');
               }
@@ -106,7 +106,7 @@ class LottieZipHelper {
         else if (fileName == 'template.json') {
           print('Found template.json');
           final content = String.fromCharCodes(file.content);
-          templateData = json.decode(content);
+          templateJson = json.decode(content);
         }
         ///
         ///Images
@@ -138,17 +138,17 @@ class LottieZipHelper {
 
       print('Processing complete:');
       print(
-        '- Animation data: ${animationData != null ? 'Found' : 'Not found'}',
+        '- Animation data: ${animDataJson != null ? 'Found' : 'Not found'}',
       );
-      print('- Template data: ${templateData != null ? 'Found' : 'Not found'}');
+      print('- Template data: ${templateJson != null ? 'Found' : 'Not found'}');
       print('- Images: ${images.length} found');
       print(
         '- Audio: ${audioData != null ? 'Found ($audioFileName)' : 'Not found'}',
       );
 
       return LottieZipData(
-        animationData: animationData,
-        templateData: templateData,
+        animDataJson: animDataJson,
+        templateJson: templateJson,
         images: images,
         audioData: audioData,
         audioFileName: audioFileName,
@@ -159,6 +159,73 @@ class LottieZipHelper {
       print('Error processing ZIP: $e');
       rethrow;
     }
+  }
+
+  /// Replace image references in animation data with base64 encoded images
+  static Map<String, dynamic> replaceImagesInAnimationData(
+    Map<String, dynamic> animationData,
+    Map<String, Uint8List>? extractedImages,
+  ) {
+    final modifiedData = Map<String, dynamic>.from(animationData);
+
+    if (modifiedData['assets'] != null && extractedImages != null) {
+      final assets = modifiedData['assets'] as List;
+
+      for (var asset in assets) {
+        if (asset is Map<String, dynamic> && asset['p'] != null) {
+          final imageName = asset['p'] as String;
+          final imageData = _findMatchingImageData(imageName, extractedImages);
+
+          if (imageData != null) {
+            _embedImageInAsset(asset, imageName, imageData);
+          }
+        }
+      }
+    }
+
+    return modifiedData;
+  }
+
+  static Uint8List? _findMatchingImageData(
+    String imageName,
+    Map<String, Uint8List> extractedImages,
+  ) {
+    for (var entry in extractedImages.entries) {
+      if (entry.key == imageName || entry.key.contains(imageName)) {
+        return entry.value;
+      }
+    }
+    return null;
+  }
+
+  static void _embedImageInAsset(
+    Map<String, dynamic> asset,
+    String imageName,
+    Uint8List imageData,
+  ) {
+    try {
+      final base64Image = base64Encode(imageData);
+      final mimeType = _getMimeType(imageName);
+      final dataUrl = 'data:$mimeType;base64,$base64Image';
+
+      // Replace the image path with data URL
+      asset['p'] = dataUrl;
+      asset['u'] = ''; // Clear the base URL
+      asset['e'] = 1; // Mark as embedded
+    } catch (e) {
+      print('Error converting $imageName to base64: $e');
+    }
+  }
+
+  static String _getMimeType(String fileName) {
+    final extension = fileName.toLowerCase().split('.').last;
+    return switch (extension) {
+      'png' => 'image/png',
+      'jpg' || 'jpeg' => 'image/jpeg',
+      'gif' => 'image/gif',
+      'svg' => 'image/svg+xml',
+      _ => 'image/png',
+    };
   }
 }
 

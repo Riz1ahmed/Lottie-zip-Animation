@@ -1,23 +1,22 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:lottie_zip_animation/home/animation_action.dart';
 import 'package:provider/provider.dart';
 import '../lottie_zip_notifier.dart';
 import 'control_button.dart';
 import 'lottie_preview_widget.dart';
 
-class AnimationSection extends StatelessWidget {
-  final AnimationController controller;
-  final Function(String) onControlAction;
-
-  const AnimationSection({
-    super.key,
-    required this.controller,
-    required this.onControlAction,
-  });
+class AnimationPreview extends StatefulWidget {
+  const AnimationPreview({super.key});
 
   @override
+  State<AnimationPreview> createState() => _AnimationPreviewState();
+}
+
+class _AnimationPreviewState extends State<AnimationPreview> {
+  @override
   Widget build(BuildContext context) {
-    final model = Provider.of<LottieZipNotifier>(context);
+    final LottieZipNotifier notifier = Provider.of(context);
 
     return Container(
       width: double.infinity,
@@ -63,9 +62,7 @@ class AnimationSection extends StatelessWidget {
             ),
             child: ClipRRect(
               borderRadius: BorderRadius.circular(12),
-              child: LottiePreviewWidget(
-                controller: controller,
-              ),
+              child: LottiePreviewWidget(),
             ),
           ),
 
@@ -78,32 +75,32 @@ class AnimationSection extends StatelessWidget {
               ControlButton(
                 icon: Icons.play_arrow,
                 label: 'Play',
-                onTap: () => onControlAction('play'),
+                onTap: () => notifier.controlAnimation(PreviewAction.play),
                 color: Colors.green,
               ),
               ControlButton(
                 icon: Icons.pause,
                 label: 'Pause',
-                onTap: () => onControlAction('pause'),
+                onTap: () => notifier.controlAnimation(PreviewAction.pause),
                 color: Colors.orange,
               ),
               ControlButton(
                 icon: Icons.stop,
                 label: 'Stop',
-                onTap: () => onControlAction('stop'),
+                onTap: () => notifier.controlAnimation(PreviewAction.stop),
                 color: Colors.red,
               ),
               ControlButton(
                 icon: Icons.refresh,
                 label: 'Restart',
-                onTap: () => onControlAction('restart'),
+                onTap: () => notifier.controlAnimation(PreviewAction.restart),
                 color: Colors.blue,
               ),
             ],
           ),
 
           // Audio Info
-          if (model.extractedAudio != null) ...[
+          if (notifier.extractedAudio != null) ...[
             const SizedBox(height: 16),
             Container(
               padding: const EdgeInsets.all(12),
