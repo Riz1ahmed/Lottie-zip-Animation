@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:lottie/lottie.dart';
 import 'package:provider/provider.dart';
 import '../lottie_zip_notifier.dart';
-import '../lottie_animation_service.dart';
 
 class LottiePreviewWidget extends StatefulWidget {
   const LottiePreviewWidget({super.key});
@@ -32,7 +31,7 @@ class _LottiePreviewWidgetState extends State<LottiePreviewWidget>
   @override
   Widget build(BuildContext context) {
     final notifier = Provider.of<LottieZipNotifier>(context);
-    if (notifier.animationData == null) {
+    if (notifier.lottieZip?.lottieJson == null) {
       return const AnimationError('No animation data available');
     }
 

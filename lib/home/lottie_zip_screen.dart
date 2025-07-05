@@ -33,8 +33,8 @@ class LottieZipViewerScreen extends StatelessWidget {
                 PickerCard(),
                 if (notifier.isLoading) const LoadingView(),
                 if (notifier.error != null) ErrorView(),
-                if (notifier.zipFileName != null) ZipInfoCard(),
-                if (notifier.animationData != null) AnimationPreview(),
+                if (notifier.lottieZip != null) ZipInfoCard(),
+                if (notifier.lottieZip?.lottieJson != null) AnimationPreview(),
               ],
             );
           },

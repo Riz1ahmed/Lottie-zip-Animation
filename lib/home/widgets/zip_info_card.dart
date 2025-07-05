@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:just_audio/just_audio.dart';
 import 'package:provider/provider.dart';
 import '../lottie_zip_notifier.dart';
 import 'info_card_row.dart';
@@ -23,7 +22,7 @@ class ZipInfoCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.1),
+            color: Colors.black.withAlpha(26),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -47,39 +46,32 @@ class ZipInfoCard extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 16),
-          InfoCardRow(
-            fileName: notifier.zipFileName!,
-            mainFolderName: notifier.mainFolderName!,
-            imagesCount: notifier.extractedImages?.length ?? 0,
-            hasAudio: notifier.extractedAudio != null,
-            hasTemplate: notifier.templateData != null,
-            audioFileName: notifier.audioFileName ?? 'None',
-          ),
+          const InfoCardRow(),
 
           // Images Preview
-          if (notifier.extractedImages != null &&
-              notifier.extractedImages!.isNotEmpty)
-            ImagesPreview(images: notifier.extractedImages!),
+          if (notifier.lottieZip?.images != null &&
+              notifier.lottieZip!.images!.isNotEmpty)
+            ImagesPreview(images: notifier.lottieZip!.images!),
 
           // Audio Preview
-          if (notifier.extractedAudio != null)
+          if (notifier.lottieZip?.audioData != null)
             Column(
               children: [
                 const SizedBox(height: 20),
                 AudioPreviewWidget(
-                  audioData: notifier.extractedAudio!,
-                  audioFileName: notifier.audioFileName,
+                  audioData: notifier.lottieZip!.audioData!,
+                  audioFileName: notifier.lottieZip!.audioFileName,
                   audioPlayer: notifier.audioPlayer,
                 ),
               ],
             ),
 
           // Debug: Show expected vs found assets
-          if (notifier.animationData != null &&
-              notifier.animationData!['assets'] != null)
+          if (notifier.lottieZip?.lottieJson != null &&
+              notifier.lottieZip!.lottieJson!['assets'] != null)
             DebugAssetsWidget(
-              assets: notifier.animationData!['assets'] as List,
-              extractedImages: notifier.extractedImages,
+              assets: notifier.lottieZip!.lottieJson!['assets'] as List,
+              extractedImages: notifier.lottieZip!.images,
             ),
         ],
       ),

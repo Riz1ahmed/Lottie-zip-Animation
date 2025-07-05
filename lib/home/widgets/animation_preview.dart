@@ -100,7 +100,7 @@ class _AnimationPreviewState extends State<AnimationPreview> {
           ),
 
           // Audio Info
-          if (notifier.extractedAudio != null) ...[
+          if (notifier.lottieZip?.audioData != null) ...[
             const SizedBox(height: 16),
             Container(
               padding: const EdgeInsets.all(12),

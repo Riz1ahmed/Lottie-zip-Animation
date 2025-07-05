@@ -147,7 +147,7 @@ class LottieZipHelper {
       );
 
       return LottieZipData(
-        animDataJson: animDataJson,
+        lottieJson: animDataJson,
         templateJson: templateJson,
         images: images,
         audioData: audioData,
@@ -161,57 +161,45 @@ class LottieZipHelper {
     }
   }
 
-  /// Replace image references in animation data with base64 encoded images
-  static Map<String, dynamic> replaceImagesInAnimationData(
-    Map<String, dynamic> animationData,
-    Map<String, Uint8List>? extractedImages,
+  /// Add the images to the Lottie JSON as base64 and return the json.
+  static Map<String, dynamic> getImageEncodedJson(
+    Map<String, dynamic> lottieJson,
+    Map<String, Uint8List> images,
   ) {
-    final modifiedData = Map<String, dynamic>.from(animationData);
+    final modifiedJson = Map<String, dynamic>.from(lottieJson);
 
-    if (modifiedData['assets'] != null && extractedImages != null) {
-      final assets = modifiedData['assets'] as List;
+    if (modifiedJson['assets'] != null) {
+      final assets = modifiedJson['assets'] as List;
 
       for (var asset in assets) {
         if (asset is Map<String, dynamic> && asset['p'] != null) {
           final imageName = asset['p'] as String;
-          final imageData = _findMatchingImageData(imageName, extractedImages);
+          final imageData = images[imageName];
 
           if (imageData != null) {
-            _embedImageInAsset(asset, imageName, imageData);
+            _encodeImageInAsset(asset, imageName, imageData);
           }
         }
       }
     }
 
-    return modifiedData;
+    return modifiedJson;
   }
 
-  static Uint8List? _findMatchingImageData(
-    String imageName,
-    Map<String, Uint8List> extractedImages,
-  ) {
-    for (var entry in extractedImages.entries) {
-      if (entry.key == imageName || entry.key.contains(imageName)) {
-        return entry.value;
-      }
-    }
-    return null;
-  }
-
-  static void _embedImageInAsset(
-    Map<String, dynamic> asset,
+  /// Encode the image data to base64
+  /// and replace the path in assetJson.
+  static void _encodeImageInAsset(
+    Map<String, dynamic> assetJson,
     String imageName,
     Uint8List imageData,
   ) {
     try {
       final base64Image = base64Encode(imageData);
       final mimeType = _getMimeType(imageName);
-      final dataUrl = 'data:$mimeType;base64,$base64Image';
 
-      // Replace the image path with data URL
-      asset['p'] = dataUrl;
-      asset['u'] = ''; // Clear the base URL
-      asset['e'] = 1; // Mark as embedded
+      assetJson['p'] = 'data:$mimeType;base64,$base64Image';
+      assetJson['u'] = ''; // Clear the base URL
+      assetJson['e'] = 1; // Mark as embedded
     } catch (e) {
       print('Error converting $imageName to base64: $e');
     }

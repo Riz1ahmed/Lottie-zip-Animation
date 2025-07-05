@@ -2,20 +2,15 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/animation.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:just_audio/just_audio.dart';
-import 'package:lottie_zip_animation/home/lottie_animation_service.dart';
+import 'package:lottie_zip_animation/home/lottie_zip_data.dart';
 import 'util.dart';
 import 'animation_action.dart';
 
 class LottieZipNotifier with ChangeNotifier {
+  LottieZipData? lottieZip;
+
   bool isLoading = false;
   String? error;
-  Map<String, dynamic>? animationData;
-  Map<String, dynamic>? templateData;
-  Map<String, Uint8List>? extractedImages;
-  Uint8List? extractedAudio;
-  String? audioFileName;
-  String? zipFileName;
-  String? mainFolderName;
 
   final AudioPlayer audioPlayer = AudioPlayer();
   AnimationController? animationController;
@@ -30,34 +25,15 @@ class LottieZipNotifier with ChangeNotifier {
     notifyListeners();
   }
 
-  void setZipData({
-    required Map<String, dynamic>? animationData,
-    required Map<String, dynamic>? templateData,
-    required Map<String, Uint8List>? extractedImages,
-    required Uint8List? extractedAudio,
-    required String? audioFileName,
-    required String? zipFileName,
-    required String? mainFolderName,
-  }) {
-    this.animationData = animationData;
-    this.templateData = templateData;
-    this.extractedImages = extractedImages;
-    this.extractedAudio = extractedAudio;
-    this.audioFileName = audioFileName;
-    this.zipFileName = zipFileName;
-    this.mainFolderName = mainFolderName;
+  void _setZipData(LottieZipData lottieZip) {
+    this.lottieZip = lottieZip;
     notifyListeners();
   }
 
   void reset() {
-    animationData = null;
-    templateData = null;
-    extractedImages = null;
-    extractedAudio = null;
-    audioFileName = null;
-    zipFileName = null;
-    mainFolderName = null;
-    error = null;
+    lottieZip = null;
+    audioPlayer.stop();
+    animationController?.reset();
     notifyListeners();
   }
 
@@ -91,17 +67,9 @@ class LottieZipNotifier with ChangeNotifier {
       reset(); // Reset previous data if exists
       final lottieZip = await LottieZipHelper.processZipFile(zipFile, fileName);
 
-      setZipData(
-        animationData: lottieZip.animDataJson,
-        templateData: lottieZip.templateJson,
-        extractedImages: lottieZip.images,
-        extractedAudio: lottieZip.audioData,
-        audioFileName: lottieZip.audioFileName,
-        zipFileName: lottieZip.zipFileName,
-        mainFolderName: lottieZip.mainFolderName,
-      );
+      _setZipData(lottieZip);
 
-      if (lottieZip.animDataJson != null) {
+      if (lottieZip.lottieJson != null) {
         animationController?.reset();
       }
 
@@ -121,7 +89,7 @@ class LottieZipNotifier with ChangeNotifier {
     switch (action) {
       case PreviewAction.play:
         animationController!.forward();
-        if (extractedAudio != null && !kIsWeb) {
+        if (lottieZip?.audioData != null && !kIsWeb) {
           audioPlayer.play();
         }
         break;
@@ -136,7 +104,7 @@ class LottieZipNotifier with ChangeNotifier {
       case PreviewAction.restart:
         animationController!.reset();
         animationController!.forward();
-        if (extractedAudio != null && !kIsWeb) {
+        if (lottieZip?.audioData != null && !kIsWeb) {
           audioPlayer.seek(Duration.zero);
           audioPlayer.play();
         }
@@ -144,11 +112,17 @@ class LottieZipNotifier with ChangeNotifier {
     }
   }
 
-  replaceImagesInAnimationData() =>
-      LottieZipHelper.replaceImagesInAnimationData(
-        animationData!,
-        extractedImages,
+  Map<String, dynamic> replaceImagesInAnimationData() {
+    try {
+      return LottieZipHelper.getImageEncodedJson(
+        lottieZip!.lottieJson!,
+        lottieZip!.images!,
       );
+    } on Exception catch (e) {
+      setError('Error replacing images: $e');
+      rethrow;
+    }
+  }
 
   @override
   void dispose() {

@@ -1,7 +1,7 @@
 import 'dart:typed_data';
 
 class LottieZipData {
-  final Map<String, dynamic>? animDataJson;
+  final Map<String, dynamic>? lottieJson;
   final Map<String, dynamic>? templateJson;
   final Map<String, Uint8List>? images;
   final Uint8List? audioData;
@@ -10,7 +10,7 @@ class LottieZipData {
   final String? mainFolderName;
 
   LottieZipData({
-    this.animDataJson,
+    this.lottieJson,
     this.templateJson,
     this.images,
     this.audioData,
