@@ -36,9 +36,9 @@ class _LottiePreviewWidgetState extends State<LottiePreviewWidget>
     }
 
     try {
-      final modifiedAnimationData = notifier.replaceImagesInAnimationData();
+      final lottieJsonWithImg = notifier.replaceImagesInAnimationData();
       return Lottie.memory(
-        Uint8List.fromList(utf8.encode(json.encode(modifiedAnimationData))),
+        Uint8List.fromList(utf8.encode(json.encode(lottieJsonWithImg))),
         controller: _lottieController,
         onLoaded: (composition) {
           _lottieController.duration = composition.duration;
