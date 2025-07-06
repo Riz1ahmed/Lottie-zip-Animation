@@ -4,12 +4,12 @@ import 'package:flutter/material.dart';
 
 class DebugAssetsWidget extends StatelessWidget {
   final List assets;
-  final Map<String, Uint8List>? extractedImages;
+  final Map<String, Uint8List>? images;
 
   const DebugAssetsWidget({
     super.key,
     required this.assets,
-    required this.extractedImages,
+    required this.images,
   });
 
   @override
@@ -35,8 +35,8 @@ class DebugAssetsWidget extends StatelessWidget {
         const SizedBox(height: 8),
         ...assets.where((asset) => asset['p'] != null).map((asset) {
           final assetName = asset['p'] as String;
-          final found = extractedImages?.containsKey(assetName) == true ||
-              extractedImages?.keys.any(
+          final found = images?.containsKey(assetName) == true ||
+              images?.keys.any(
                   (key) => key.contains(assetName.split('.').first)) ==
                   true;
 
@@ -61,6 +61,8 @@ class DebugAssetsWidget extends StatelessWidget {
                 Expanded(
                   child: Text(
                     'Expected: $assetName',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                     style: TextStyle(
                       fontSize: 12,
                       color: found ? Colors.green[700] : Colors.red[700],
@@ -70,7 +72,7 @@ class DebugAssetsWidget extends StatelessWidget {
               ],
             ),
           );
-        }).toList(),
+        }),
       ],
     );
   }

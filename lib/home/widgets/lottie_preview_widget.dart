@@ -20,6 +20,12 @@ class _LottiePreviewWidgetState extends State<LottiePreviewWidget>
   void initState() {
     super.initState();
     _lottieController = AnimationController(vsync: this);
+
+    // Set the controller in the notifier
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final notifier = Provider.of<LottieZipNotifier>(context, listen: false);
+      notifier.setAnimationController(_lottieController);
+    });
   }
 
   @override
@@ -36,9 +42,9 @@ class _LottiePreviewWidgetState extends State<LottiePreviewWidget>
     }
 
     try {
-      final lottieJsonWithImg = notifier.replaceImagesInAnimationData();
+      final modifiedAnimationData = notifier.replaceImagesInAnimationData();
       return Lottie.memory(
-        Uint8List.fromList(utf8.encode(json.encode(lottieJsonWithImg))),
+        Uint8List.fromList(utf8.encode(json.encode(modifiedAnimationData))),
         controller: _lottieController,
         onLoaded: (composition) {
           _lottieController.duration = composition.duration;
