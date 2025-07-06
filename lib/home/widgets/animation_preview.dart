@@ -1,6 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:lottie_zip_animation/home/animation_action.dart';
+import 'package:lottie_zip_animation/home/preview_action.dart';
 import 'package:provider/provider.dart';
 import '../lottie_zip_notifier.dart';
 import 'control_button.dart';
@@ -26,7 +26,7 @@ class _AnimationPreviewState extends State<AnimationPreview> {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.1),
+            color: Colors.black.withAlpha(26),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -58,7 +58,7 @@ class _AnimationPreviewState extends State<AnimationPreview> {
             decoration: BoxDecoration(
               color: Colors.grey[100],
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: Colors.grey.withOpacity(0.3)),
+              border: Border.all(color: Colors.grey.withAlpha(77)),
             ),
             child: ClipRRect(
               borderRadius: BorderRadius.circular(12),
@@ -105,9 +105,9 @@ class _AnimationPreviewState extends State<AnimationPreview> {
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: Colors.amber.withOpacity(0.1),
+                color: Colors.amber.withAlpha(26),
                 borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: Colors.amber.withOpacity(0.3)),
+                border: Border.all(color: Colors.amber.withAlpha(77)),
               ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,

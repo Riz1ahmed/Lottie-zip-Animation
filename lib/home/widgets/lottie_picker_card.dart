@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:lottie_zip_animation/home/lottie_zip_notifier.dart';
 import 'package:provider/provider.dart';
 
-class PickerCard extends StatelessWidget {
-  const PickerCard({super.key});
+class LottiePickerCard extends StatelessWidget {
+  const LottiePickerCard({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -33,7 +33,7 @@ class PickerCard extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.all(20),
                   decoration: BoxDecoration(
-                    color: Colors.blue.withOpacity(0.1),
+                    color: Colors.blue.withAlpha(26), // 0.1 * 255 ≈ 26
                     shape: BoxShape.circle,
                   ),
                   child: const Icon(

@@ -9,64 +9,39 @@ class InfoCardRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final notifier = Provider.of<LottieZipNotifier>(context);
 
-    return Column(
+    return GridView.count(
+      crossAxisCount: 2,
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      mainAxisSpacing: 12,
+      crossAxisSpacing: 12,
+      childAspectRatio: 2,
       children: [
-        Row(
-          children: [
-            Expanded(
-              child: ZipInfoCard(
-                label: 'File Name',
-                value: notifier.lottieZip?.zipFileName ?? 'None',
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: ZipInfoCard(
-                label: 'Main Folder',
-                value: notifier.lottieZip?.mainFolderName ?? 'None',
-              ),
-            ),
-          ],
+        ZipInfoCard(
+          label: 'File Name',
+          value: notifier.lottieZip?.zipFileName ?? 'None',
         ),
-        const SizedBox(height: 12),
-        Row(
-          children: [
-            Expanded(
-              child: ZipInfoCard(
-                label: 'Images Found',
-                value: (notifier.lottieZip?.images?.length ?? 0).toString(),
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: ZipInfoCard(
-                value: 'Audio',
-                label: notifier.lottieZip?.audioData != null
-                    ? 'Found'
-                    : 'Not Found',
-              ),
-            ),
-          ],
+        ZipInfoCard(
+          label: 'Main Folder',
+          value: notifier.lottieZip?.mainFolderName ?? 'None',
         ),
-        const SizedBox(height: 12),
-        Row(
-          children: [
-            Expanded(
-              child: ZipInfoCard(
-                label: 'Template',
-                value: notifier.lottieZip?.templateJson != null
-                    ? 'Found'
-                    : 'Not Found',
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: ZipInfoCard(
-                label: 'Audio File',
-                value: notifier.lottieZip?.audioFileName ?? 'None',
-              ),
-            ),
-          ],
+        ZipInfoCard(
+          label: 'Images Found',
+          value: (notifier.lottieZip?.images?.length ?? 0).toString(),
+        ),
+        ZipInfoCard(
+          label: 'Audio',
+          value: notifier.lottieZip?.audioData != null ? 'Found' : 'Not Found',
+        ),
+        ZipInfoCard(
+          label: 'Template',
+          value: notifier.lottieZip?.templateJson != null
+              ? 'Found'
+              : 'Not Found',
+        ),
+        ZipInfoCard(
+          label: 'Audio File',
+          value: notifier.lottieZip?.audioFileName ?? 'None',
         ),
       ],
     );
@@ -82,14 +57,16 @@ class ZipInfoCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.symmetric(horizontal: 12),
       decoration: BoxDecoration(
         color: Colors.grey[50],
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: Colors.grey.withOpacity(0.2)),
+        border: Border.all(color: Colors.grey.withAlpha(51)), // 0.2 * 255 ≈ 51
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Text(label, style: TextStyle(fontSize: 12, color: Colors.grey[600])),
           const SizedBox(height: 4),

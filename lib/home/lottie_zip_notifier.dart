@@ -1,10 +1,11 @@
+import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/animation.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:lottie_zip_animation/home/lottie_zip_data.dart';
 import 'util.dart';
-import 'animation_action.dart';
+import 'preview_action.dart';
 
 class LottieZipNotifier with ChangeNotifier {
   LottieZipData? lottieZip;
@@ -74,7 +75,11 @@ class LottieZipNotifier with ChangeNotifier {
       }
 
       if (lottieZip.audioData != null) {
-        await audioPlayer.setBytes(lottieZip.audioData!);
+        try {
+          await audioPlayer.setUrl('data:audio/mp3;base64,${base64Encode(lottieZip.audioData!)}');
+        } catch (e) {
+          print('Audio error: $e');
+        }
       }
     } catch (e) {
       setError('Error processing ZIP: $e');
@@ -89,7 +94,7 @@ class LottieZipNotifier with ChangeNotifier {
     switch (action) {
       case PreviewAction.play:
         animationController!.forward();
-        if (lottieZip?.audioData != null && !kIsWeb) {
+        if (lottieZip?.audioData != null) {
           audioPlayer.play();
         }
         break;
@@ -104,7 +109,7 @@ class LottieZipNotifier with ChangeNotifier {
       case PreviewAction.restart:
         animationController!.reset();
         animationController!.forward();
-        if (lottieZip?.audioData != null && !kIsWeb) {
+        if (lottieZip?.audioData != null) {
           audioPlayer.seek(Duration.zero);
           audioPlayer.play();
         }

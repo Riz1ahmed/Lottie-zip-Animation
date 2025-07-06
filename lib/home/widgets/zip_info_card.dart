@@ -4,7 +4,6 @@ import '../lottie_zip_notifier.dart';
 import 'info_card_row.dart';
 import 'images_preview.dart';
 import 'audio_preview_widget.dart';
-import 'debug_assets_widget.dart';
 
 class ZipInfoCard extends StatelessWidget {
   const ZipInfoCard({super.key});
@@ -49,9 +48,7 @@ class ZipInfoCard extends StatelessWidget {
           const InfoCardRow(),
 
           // Images Preview
-          if (notifier.lottieZip?.images != null &&
-              notifier.lottieZip!.images!.isNotEmpty)
-            ImagesPreview(images: notifier.lottieZip!.images!),
+          if (notifier.lottieZip?.images?.isNotEmpty ?? false) ImagesPreview(),
 
           // Audio Preview
           if (notifier.lottieZip?.audioData != null)
@@ -64,14 +61,6 @@ class ZipInfoCard extends StatelessWidget {
                   audioPlayer: notifier.audioPlayer,
                 ),
               ],
-            ),
-
-          // Debug: Show expected vs found assets
-          if (notifier.lottieZip?.lottieJson != null &&
-              notifier.lottieZip!.lottieJson!['assets'] != null)
-            DebugAssetsWidget(
-              assetNames: notifier.getAssetNames(),
-              images: notifier.lottieZip!.images,
             ),
         ],
       ),

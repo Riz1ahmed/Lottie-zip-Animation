@@ -19,16 +19,16 @@ class AudioPreviewWidget extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.green.withOpacity(0.1),
+        color: Colors.green.withAlpha(25), // 0.1 * 255 ≈ 25
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.green.withOpacity(0.3)),
+        border: Border.all(color: Colors.green.withAlpha(77)), // 0.3 * 255 ≈ 77
       ),
       child: Row(
         children: [
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: Colors.green.withOpacity(0.2),
+              color: Colors.green.withAlpha(51), // 0.2 * 255 ≈ 51
               shape: BoxShape.circle,
             ),
             child: const Icon(
@@ -69,29 +69,29 @@ class AudioPreviewWidget extends StatelessWidget {
               ],
             ),
           ),
-          if (!kIsWeb) // Audio controls only on mobile
-            StreamBuilder<PlayerState>(
-              stream: audioPlayer.playerStateStream,
-              builder: (context, snapshot) {
-                final playerState = snapshot.data;
-                final isPlaying = playerState?.playing ?? false;
+          StreamBuilder<PlayerState>(
+            stream: audioPlayer.playerStateStream,
+            builder: (context, snapshot) {
+              final playerState = snapshot.data;
+              final isPlaying = playerState?.playing ?? false;
 
-                return IconButton(
-                  onPressed: () {
-                    if (isPlaying) {
-                      audioPlayer.pause();
-                    } else {
-                      audioPlayer.play();
-                    }
-                  },
-                  icon: Icon(
-                    isPlaying ? Icons.pause : Icons.play_arrow,
-                    color: Colors.green,
-                    size: 28,
-                  ),
-                );
-              },
-            ),
+              return IconButton(
+                onPressed: () {
+                  if (isPlaying) {
+                    audioPlayer.stop();
+                  } else {
+                    audioPlayer.seek(Duration.zero);
+                    audioPlayer.play();
+                  }
+                },
+                icon: Icon(
+                  isPlaying ? Icons.pause : Icons.play_arrow,
+                  color: Colors.green,
+                  size: 28,
+                ),
+              );
+            },
+          ),
         ],
       ),
     );

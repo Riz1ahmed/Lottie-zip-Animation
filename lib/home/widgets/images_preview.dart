@@ -1,13 +1,19 @@
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+
+import '../lottie_zip_notifier.dart';
 
 class ImagesPreview extends StatelessWidget {
-  final Map<String, Uint8List> images;
-  const ImagesPreview({super.key, required this.images});
+  const ImagesPreview({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final notifier = Provider.of<LottieZipNotifier>(context);
+    final images = notifier.lottieZip?.images ?? <String, Uint8List>{};
+
+
     if (images.isEmpty) return const SizedBox.shrink();
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'lottie_zip_notifier.dart';
-import 'widgets/pickerCard.dart';
+import 'widgets/lottie_picker_card.dart';
 import 'widgets/loading_view.dart';
 import 'widgets/error_view.dart';
 import 'widgets/zip_info_card.dart';
@@ -30,7 +30,7 @@ class LottieZipViewerScreen extends StatelessWidget {
           builder: (context, notifier, child) {
             return Column(
               children: [
-                PickerCard(),
+                LottiePickerCard(),
                 if (notifier.isLoading) const LoadingView(),
                 if (notifier.error != null) ErrorView(),
                 if (notifier.lottieZip != null) ZipInfoCard(),
