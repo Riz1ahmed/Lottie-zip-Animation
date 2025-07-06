@@ -112,7 +112,7 @@ class LottieZipNotifier with ChangeNotifier {
     }
   }
 
-  Map<String, dynamic> replaceImagesInAnimationData() {
+  Map<String, dynamic> getImageEncodedJson() {
     try {
       return LottieZipHelper.getImageEncodedJson(
         lottieZip!.lottieJson!,
@@ -129,4 +129,9 @@ class LottieZipNotifier with ChangeNotifier {
     audioPlayer.dispose();
     super.dispose();
   }
+
+  List<String> getAssetNames() => (lottieZip!.lottieJson!['assets'] as List)
+      .where((asset) => asset['p'] != null)
+      .map((e) => e['p'] as String)
+      .toList();
 }

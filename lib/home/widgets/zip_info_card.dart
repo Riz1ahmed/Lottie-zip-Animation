@@ -70,7 +70,7 @@ class ZipInfoCard extends StatelessWidget {
           if (notifier.lottieZip?.lottieJson != null &&
               notifier.lottieZip!.lottieJson!['assets'] != null)
             DebugAssetsWidget(
-              assets: notifier.lottieZip!.lottieJson!['assets'] as List,
+              assetNames: notifier.getAssetNames(),
               images: notifier.lottieZip!.images,
             ),
         ],
